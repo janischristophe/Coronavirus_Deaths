@@ -1,0 +1,110 @@
+SELECT * 
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath` 
+ORDER BY 3,4
+
+--Later on (line 46-50) need to have a WHERE clause that excludes data points that involve the grouping of continents instead of country; this will help us get rid of any data points that are not appointed to a counry specifically
+
+--Have cleaned the data to only represent dates between Jan.5,2020-Apr.30, 2021
+--Select data that we are going to be using 
+
+SELECT location, date, total_cases, new_cases, total_deaths, population
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+ORDER BY 1,2
+
+
+--Looking for total cases vs total deaths (daily death rate)
+
+SELECT location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 as DeathPercentage
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+ORDER BY 1,2
+
+--To SPECIFY by a specific attribute include the WHERE clause:
+--Shows likelihood of dying if you contract covid in a specific country.
+
+SELECT location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 as DeathPercentage
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+WHERE location = "United States"
+ORDER BY 1,2
+
+--Looking at Total Cases vs Population
+--Shows what percentage of population got COVID
+
+SELECT location, date, population, total_cases, (total_cases/population)*100 as PercentPopulationInfected
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+WHERE location = "United States"
+ORDER BY 1,2
+
+--Looking at Countries with Highest Infection Rate compared to Population 
+
+SELECT location, population, MAX(total_cases) as HighestInfectionCount, MAX((total_cases/population))*100 as PercentPopulationInfected
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+GROUP BY location, population
+ORDER BY 4 desc
+--Andorra, Czechia, Montenegro, San Morino, Gibraltar top 5 percent population infected
+
+--Looking at Countires with Highest Death Count per Population
+
+SELECT location, MAX(CAST(total_deaths as int)) AS TotalDeathCount
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+WHERE continent is not null
+GROUP BY location
+ORDER BY 2 desc
+-- U.S. Brazil, Mexico, India, Peru top 5 most deaths
+
+--LET'S BREAK THINGS DOWN BY CONTINENT INSTEAD OF LOCATION(COUNTRY)
+
+SELECT continent, MAX(cast(total_deaths as int)) AS TotalDeathCount
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+WHERE continent is not null
+GROUP BY continent
+ORDER BY 2 desc
+--A few issues inc. N. America not including Canada or Mexico COUNTS
+
+--What would happen if WHERE clause = continent is null?
+
+SELECT continent, MAX(cast(total_deaths as int)) AS TotalDeathCount
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+WHERE continent is null
+GROUP BY continent
+ORDER BY 2 desc
+--There is 3271344 counts not included in a continent
+
+--IF we Group by LOCATION instead of continent but inculde all nulls
+
+SELECT location, MAX(cast(total_deaths as int)) AS TotalDeathCount
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+WHERE continent is null
+GROUP BY location
+ORDER BY 2 desc
+--ALL OF THE DATA POINTS ARE INCLUDED!!! THESE RESULTS SEAM MORE ACCURATE THAN BREAKING THINGS DOWN BY CONTINENTS AND REMOVING THE NULLS. GOING TO USE THE CONTINENT ONE BUT SHOULD GO BACK AND PLAY WITH THE LOCATION QUERY TO SEE WHAT CHANGES.
+
+
+
+
+
+---back to using continents exculding nulls for the project
+-- Showing continents with the highest death count per population
+
+SELECT continent, MAX(cast(total_deaths as int)) AS TotalDeathCount
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+WHERE continent is not null
+GROUP BY continent
+ORDER BY 2 desc
+
+
+--GLOBAL NUMBERS
+
+
+SELECT date, SUM(new_cases) as TotalNewCases, SUM(cast(new_deaths as int)) as TotalNewDeaths, SUM(cast(new_deaths as int))/SUM(new_cases)*100 as DeathPercentage
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+--WHERE location = "United States" (not being used right now)
+WHERE continent is not null
+GROUP BY date
+ORDER BY 1,2
+--Wierd result for 2020-01-05 death percentange?
+
+--TO simply see totals without restrictions:
+
+SELECT SUM(new_cases) as TotalNewCases, SUM(cast(new_deaths as int)) as TotalNewDeaths, SUM(cast(new_deaths as int))/SUM(new_cases)*100 as DeathPercentage
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath`
+ORDER BY 1,2
