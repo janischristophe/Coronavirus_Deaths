@@ -1,0 +1,51 @@
+--Table 1.
+
+SELECT
+  SUM(new_cases) as total_cases, SUM(cast(new_deaths as int)) as total_deaths, SUM(cast(new_deaths as int))/SUM(New_Cases)*100 as DeathPercentage
+FROM
+  `portfolio-case-studies-411320.Covid19.CovidDeath`
+##WHERE location like '%states%'
+WHERE
+  continent is not null 
+##GROUP BY date
+ORDER BY
+  1,2
+
+
+--Table 2.
+SELECT
+  location, SUM(cast(new_deaths as int)) as TotalDeathCount
+FROM
+  `portfolio-case-studies-411320.Covid19.CovidDeath`
+##WHERE location like '%states%'
+WHERE 
+  continent is null 
+  AND location not in ('World', 'European Union', 'International', 'High income', 'Upper middle income', 'Lower middle income', 'Low income')
+GROUP BY
+  location
+ORDER BY
+  2 desc
+
+
+--Table 3.
+SELECT
+  Location, Population, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
+FROM 
+  `portfolio-case-studies-411320.Covid19.CovidDeath`
+##WHERE location like '%states%'
+GROUP BY
+  Location, Population
+ORDER BY
+  4 desc
+
+
+--Table 4.
+SELECT 
+  Location, date, Population, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
+FROM
+  `portfolio-case-studies-411320.Covid19.CovidDeath`
+##WHERE location like '%states%'
+GROUP BY
+  Location, Population, date
+ORDER BY
+  5 desc
