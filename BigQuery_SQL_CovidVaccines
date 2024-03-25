@@ -1,0 +1,44 @@
+SELECT * 
+FROM `portfolio-case-studies-411320.Covid19.CovidVaccination` 
+ORDER BY 3,4
+
+
+##Select data that we will be using in COMBINATION with CovidDeaths
+
+SELECT *
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath` dea
+JOIN `portfolio-case-studies-411320.Covid19.CovidVaccination` vac
+  ON dea.continent = vac.continent
+  AND dea.location = vac.location
+  AND dea.date = vac.date
+ORDER BY 3,4
+
+##Looking at Total Population vs Vaccinations
+
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, SUM(CAST(vac.new_vaccinations as int)) OVER (PARTITION BY dea.location ORDER BY dea.location, dea.date) as RollingCountVaccinations
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath` dea
+JOIN `portfolio-case-studies-411320.Covid19.CovidVaccination` vac
+  ON dea.continent = vac.continent
+  AND dea.location = vac.location
+  AND dea.date = vac.date
+WHERE dea.continent is not null
+ORDER BY 2,3
+##this gave us a table with rolling cound of each country, per day but to complete the percentage, (RollingCountVaccinations/population)*100, of vaccinated people per day we need to create a temporary table that includes the column "RollingCountVaccinations"
+
+##Creating CTE (Common Table Expression); in other platforms, make sure to have same number of columns after WITH in CTE as previously selected
+
+WITH PopvsVac 
+AS
+(
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, SUM(CAST(vac.new_vaccinations as int)) OVER (PARTITION BY dea.location ORDER BY dea.location, dea.date) as RollingCountVaccinations
+FROM `portfolio-case-studies-411320.Covid19.CovidDeath` dea
+JOIN `portfolio-case-studies-411320.Covid19.CovidVaccination` vac
+  ON dea.continent = vac.continent
+  AND dea.location = vac.location
+  AND dea.date = vac.date
+WHERE dea.continent is not null
+)
+SELECT *, (RollingCountVaccinations/population)*100 as PercentVaccinated
+FROM PopvsVac
